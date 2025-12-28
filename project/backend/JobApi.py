@@ -1,13 +1,23 @@
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
 from JobList import JobList
 from bson.objectid import ObjectId
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 import os
 
 app = FastAPI(title="Job Application Tracker API", version="1.0.0")
+
+# enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 #pydantic models
 class JobCreate(BaseModel):
@@ -39,7 +49,11 @@ class JobResponse(BaseModel):
     remarks: Optional[str] = None
 
 # initialize JobList
-db = JobList()
+try:
+    db = JobList()
+except Exception as e:
+    db = None
+    print(f"Error initializing database: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -68,11 +82,22 @@ async def create_job(job: JobCreate):
             remarks=job.remarks
         )
         if job_id is None:
-            raise HTTPException(status_code=500, detail="Failed to create job")
-        else:
-            return {"message": "Job created successfully", "job_id": job_id}
+            raise HTTPException(status_code=400, detail="Failed to create job - validation error or database issue")
+        
+        # Get the created job to return it
+        created_job = db.jobs_collection.find_one({"_id": ObjectId(job_id)})
+        return JobResponse(
+            id=job_id,
+            company=created_job["company"],
+            position=created_job["position"],
+            status=created_job["status"],
+            date_applied=created_job["date_applied"],
+            salary=created_job.get("salary"),
+            job_url=created_job.get("job_url"),
+            remarks=created_job.get("remarks")
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail={f"Error creating job: {e}"})
+        raise HTTPException(status_code=500, detail=f"Error creating job: {e}")
     
 @app.get("/jobs/", response_model=List[JobResponse])
 async def get_all_jobs():
@@ -92,7 +117,7 @@ async def get_all_jobs():
             ) for job in jobs
         ]
     except Exception as e:
-        raise HTTPException(status_code=500, detail={f"Error retrieving jobs: {e}"})
+        raise HTTPException(status_code=500, detail=f"Error retrieving jobs: {e}")
     
 @app.put("/jobs/{job_id}", response_model=JobResponse)
 async def update_job(job_id: str, job: JobUpdate):
@@ -137,7 +162,7 @@ async def update_job(job_id: str, job: JobUpdate):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail={f"Error updating job: {e}"})
+        raise HTTPException(status_code=500, detail=f"Error updating job: {e}")
     
 @app.delete("/jobs/{job_id}", response_model=dict)
 async def delete_job(job_id: str):
@@ -163,7 +188,7 @@ async def delete_job(job_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail={f"Error deleting job: {e}"})
+        raise HTTPException(status_code=500, detail=f"Error deleting job: {e}")
     
 
 if __name__ == "__main__":
