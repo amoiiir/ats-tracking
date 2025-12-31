@@ -15,6 +15,16 @@ export default function JobList({ jobs, onDelete, onEdit }: JobListProps) {
     setSelectedJob(null);
   };
 
+  // Safeguard: ensure jobs is an array
+  if (!Array.isArray(jobs)) {
+    console.error("Expected jobs to be an array, but got:", jobs);
+    return (
+      <p className="text-center text-red-500 dark:text-red-400 mt-6">
+        Error loading jobs. Please check the backend connection.
+      </p>
+    );
+  }
+
   if (jobs.length === 0) {
     return (
       <p className="text-center text-gray-500 dark:text-gray-400 mt-6">
@@ -74,7 +84,8 @@ export default function JobList({ jobs, onDelete, onEdit }: JobListProps) {
                     rel="noopener noreferrer"
                     className="text-blue-500 hover:underline"
                   >
-                    Link<Link size={14} />
+                    Link
+                    <Link size={14} />
                   </a>
                 ) : (
                   "N/A"

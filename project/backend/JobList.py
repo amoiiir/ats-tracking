@@ -8,6 +8,9 @@ load_dotenv()
 
 mongo_uri = os.getenv("MONGODB_ATLAS_CLUSTER_URI")
 
+if not mongo_uri:
+    raise ValueError("MONGODB_ATLAS_CLUSTER_URI not found in environment variables.")
+
 class JobList:
 
     # Connection and creating indexes

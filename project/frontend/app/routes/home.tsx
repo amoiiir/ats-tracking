@@ -89,6 +89,7 @@ export default function Home() {
     fetch("http://localhost:8000/jobs/")
       .then((res) => res.json())
       .then((data) => {
+        console.log("Fetched jobs:", data);
         setJobs(data);
       })
       .catch(console.error);

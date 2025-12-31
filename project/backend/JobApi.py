@@ -51,9 +51,13 @@ class JobResponse(BaseModel):
 # initialize JobList
 try:
     db = JobList()
+    print("✓ Database connection successful!")
 except Exception as e:
     db = None
-    print(f"Error initializing database: {e}")
+    print(f"✗ ERROR initializing database: {e}")
+    print(f"  Make sure you have a .env file with MONGODB_ATLAS_CLUSTER_URI")
+    import traceback
+    traceback.print_exc()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -102,6 +106,9 @@ async def create_job(job: JobCreate):
 @app.get("/jobs/", response_model=List[JobResponse])
 async def get_all_jobs():
     """Get all job lists"""
+    if db is None:
+        raise HTTPException(status_code=503, detail="Database not connected. Check server logs.")
+    
     try:
         jobs = db.get_all_jobs()
         return [

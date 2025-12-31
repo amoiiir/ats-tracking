@@ -76,17 +76,23 @@ export default function JobForm({
       <input
         name="salary"
         type="number"
+        min="0"
+        step="0.01"
         placeholder="Salary (optional)"
         value={form.salary}
         onChange={onChange}
+        title="Please enter a positive number"
         className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
       <input
         name="jobUrl"
-        placeholder="Job URL"
+        type="url"
+        placeholder="Job URL (e.g., https://example.com)"
         value={form.jobUrl}
         onChange={onChange}
+        pattern="https?://.+"
+        title="Please enter a valid URL starting with http:// or https://"
         className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
