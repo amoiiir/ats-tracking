@@ -1,5 +1,5 @@
 .env
 myvenv
-__pycahche__
+project/backend/__pycache__
 notes
 node_modules
